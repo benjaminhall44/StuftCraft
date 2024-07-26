@@ -1,37 +1,72 @@
+import time
+
 import pygame
 import socket
-import time
+import sys
 
 from Sprite import Sprite
 from Vector import Vector
 from Messenger import Messenger
+from Menu import Menu
 
 class StuftCraftClient:
-    messenger: Messenger
+    Textures = [
+        pygame.image.load("assets/graphics/menu/icons/buildings/base.png"),
 
-    def __init__(self):
+        pygame.image.load("assets/graphics/menu/icons/troops/three.png"),
+        pygame.image.load("assets/graphics/menu/icons/troops/four.png"),
+        pygame.image.load("assets/graphics/menu/icons/troops/man.png"),
+        pygame.image.load("assets/graphics/menu/icons/troops/lasereagle.png"),
+        pygame.image.load("assets/graphics/menu/icons/troops/bigman.png"),
+        pygame.image.load("assets/graphics/menu/icons/troops/spider.png"),
+        pygame.image.load("assets/graphics/menu/icons/troops/flyingtank.png"),
+
+        pygame.image.load("assets/graphics/menu/icons/workers/miner.png"),
+
+        pygame.image.load("assets/graphics/menu/icons/machines/car.png"),
+
+        pygame.image.load("assets/graphics/menu/icons/research/dragon.png")
+    ]
+
+    def __init__(self, player_name: str):
         self.screen = pygame.display.set_mode(size=[1000, 700], flags=pygame.RESIZABLE)
-        self.menu = None
-        self.view = Vector()
-
+        self.menu = Menu()
+        self.view = [0, 0]
+        self.MapSize = [100,100]
         # status #
 
-        self.elements = []
+        self.player_name = player_name
+        self.layers: list[list[Sprite]]
+        self.minerals = 0
+
+        self.status = 2
 
         self.socket = socket.socket()
 
         self.address = None
 
+        self.MouseDown = False
+        self.scrolling = False
+        self.MousePosition = [0, 0]
+        self.PreviousMousePosition = [0, 0]
+
+        self.buying = None
+
+        self.selecting = False
+        self.selection_radius = 100
+        self.targeting = False
+
     def connect(self, address):
         self.address = address
+        self.connect_to_server()
 
     def play(self):
-        self.connect_to_server()
         self.animate()
-
-        MouseDown = False
-        MousePosition = [0,0]
-        PreviousMousePosition = [0,0]
+        UpDown = False
+        DownDown = False
+        LeftDown = False
+        RightDown = False
+        ShiftDown = False
 
         playing = True
         while playing:
@@ -39,17 +74,105 @@ class StuftCraftClient:
                 if event.type == pygame.QUIT:
                     self.exit()
                     return
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        UpDown = True
+                    elif event.key == pygame.K_DOWN:
+                        DownDown = True
+                    elif event.key == pygame.K_LEFT:
+                        LeftDown = True
+                    elif event.key == pygame.K_RIGHT:
+                        RightDown = True
+                    elif event.key == pygame.K_LSHIFT:
+                        ShiftDown = True
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_UP:
+                        UpDown = False
+                    elif event.key == pygame.K_DOWN:
+                        DownDown = False
+                    elif event.key == pygame.K_LEFT:
+                        LeftDown = False
+                    elif event.key == pygame.K_RIGHT:
+                        RightDown = False
+                    elif event.key == pygame.K_LSHIFT:
+                        ShiftDown = False
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    MouseDown = True
-                    self.socket.send(b"spawn;", 0)
-                elif event.type == pygame.MOUSEBUTTONUP:
-                    MouseDown = False
-                elif event.type == pygame.MOUSEMOTION:
-                    MousePosition = Vector(event.pos)
-                    if MouseDown:
-                        self.view = self.view - (MousePosition - PreviousMousePosition)
-                    PreviousMousePosition = Vector(event.pos)
+                    if event.button == 1:
+                        if self.status == 2:
+                            self.MouseDown = True
+                            result, value = self.menu.click_menu(self.screen.get_size(), event.pos)
+                            if result == Menu.BOUGHT:
+                                if self.buying is None or self.buying != value:
+                                    self.buying = value
+                                else:
+                                    self.buying = None
+                            elif result == Menu.MISSED_MENU:
+                                if self.buying is not None:
+                                    message = b"buy:"
+                                    message += self.buying.to_bytes(4, "little")
+                                    message += (self.view[0] + self.MousePosition[0]).to_bytes(4, "little")
+                                    message += (self.view[1] + self.MousePosition[1]).to_bytes(4, "little")
+                                    self.socket.send(message,0)
+                                    if not ShiftDown:
+                                        self.buying = None
+                                elif self.selecting:
+                                    message = b"slct"
+                                    message += self.selection_radius.to_bytes(4, "little")
+                                    message += (self.view[0] + self.MousePosition[0]).to_bytes(4, "little")
+                                    message += (self.view[1] + self.MousePosition[1]).to_bytes(4, "little")
+                                    self.socket.send(message, 0)
+                                    self.selecting = False
+                                    self.targeting = True
+                                elif self.targeting:
+                                    message = b"move"
+                                    message += self.selection_radius.to_bytes(4, "little")
+                                    message += (self.view[0] + self.MousePosition[0]).to_bytes(4, "little")
+                                    message += (self.view[1] + self.MousePosition[1]).to_bytes(4, "little")
+                                    self.socket.send(message, 0)
+                                    self.targeting = False
+                            elif result == Menu.SCROLL or result == Menu.SCROLL_TAB:
+                                self.scrolling = True
+                            elif result == Menu.CONTROL:
+                                if not self.selecting:
+                                    self.selecting = True
+                                else:
+                                    self.selecting = False
+                                    self.targeting = False
+                            elif result == Menu.CONTROL_RADIUS_UP:
+                                self.selection_radius += 10
+                            elif result == Menu.CONTROL_RADIUS_DOWN:
+                                self.selection_radius -= 10
+                                if self.selection_radius < 10:
+                                    self.selection_radius = 10
 
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 1:
+                        self.MouseDown = False
+                elif event.type == pygame.MOUSEMOTION:
+                    self.MousePosition = event.pos
+                    #if MouseDown:
+                    #    self.view = self.view - (MousePosition - PreviousMousePosition)
+                    #PreviousMousePosition = Vector(event.pos)
+            if self.scrolling and self.MouseDown:
+                result, value = self.menu.click_menu(self.screen.get_size(), self.MousePosition)
+                if result != Menu.SCROLL and result != Menu.SCROLL_TAB:
+                    scrolling = False
+            if UpDown:
+                self.view[1] -= 10
+                if self.view[1] < 0:
+                    self.view[1] = 0
+            if DownDown:
+                self.view[1] += 10
+            if self.view[1] > self.MapSize[1] - self.screen.get_size()[1]:
+                self.view[1] = self.MapSize[1] - self.screen.get_size()[1]
+            if LeftDown:
+                self.view[0] -= 10
+                if self.view[0] < 0:
+                    self.view[0] = 0
+            if RightDown:
+                self.view[0] += 10
+            if self.view[0] > self.MapSize[0] - self.screen.get_size()[0]:
+                self.view[0] = self.MapSize[0] - self.screen.get_size()[0]
             self.update()
             self.animate()
 
@@ -58,19 +181,55 @@ class StuftCraftClient:
 
         self.screen.fill([0,255,0])
 
-        for s in self.elements:
-            s.draw(self.screen, self.view)
+        for layer in self.layers:
+            for s in layer:
+                s.draw(self.screen, self.view)
 
-        self.draw_menu()
+        self.menu.draw_menu(self.screen)
+
+        if self.buying is not None:
+            self.draw_buy()
+        elif self.selecting:
+            surface = pygame.Surface([2 * self.selection_radius, 2 * self.selection_radius],
+                                     flags=pygame.SRCALPHA)
+            pygame.draw.circle(surface,
+                               (255, 255, 255, 80),
+                               [self.selection_radius, self.selection_radius],
+                               float(self.selection_radius))
+            self.screen.blit(surface,
+                             [self.MousePosition[0] - self.selection_radius,
+                              self.MousePosition[1] - self.selection_radius])
+        elif self.targeting:
+            surface = pygame.Surface([2 * self.selection_radius, 2 * self.selection_radius],
+                                     flags=pygame.SRCALPHA)
+            pygame.draw.circle(surface,
+                               (255, 0, 0, 80),
+                               [self.selection_radius, self.selection_radius],
+                               float(self.selection_radius))
+            self.screen.blit(surface,
+                             [self.MousePosition[0] - self.selection_radius,
+                              self.MousePosition[1] - self.selection_radius])
+        if self.status != 2:
+            if self.status == 1:
+                splash = pygame.image.load("assets/graphics/menu/winscreen.png")
+                self.screen.blit(pygame.transform.scale(splash, size), (0,0))
+                # You Win!
+            elif self.status == 0:
+                splash = pygame.image.load("assets/graphics/menu/losescreen.png")
+                self.screen.blit(pygame.transform.scale(splash, size), (0, 0))
+                # You Lose :(
 
         pygame.display.flip()
 
-    def draw_menu(self):
-        pass
+    def draw_buy(self):
+        texture = self.Textures[self.buying]
+        dest = [self.MousePosition[0] - texture.get_size()[0]//2,
+                self.MousePosition[1] - texture.get_size()[1]//2]
+        self.screen.blit(texture, dest)
 
     def exit(self):
         playing = False
-        self.socket.send(b"exit;", 0)
+        self.socket.send(b"exitcode\0\0\0\0\0\0\0\0", 0)
         self.socket.close()
         pygame.quit()
 
@@ -78,19 +237,30 @@ class StuftCraftClient:
         if self.address is None:
             raise Exception("No address provided")
         self.socket.connect(self.address)
-        player_name = input("Enter Name: ")
-        self.socket.send(player_name.encode("utf8"), 0)
-
-        self.update()
+        self.socket.send(self.player_name.encode("utf8"), 0)
+        mes = self.socket.recv(1024 * 1024, 0)
+        self.MapSize = [int.from_bytes(mes[0:4], "little"),
+                        int.from_bytes(mes[4:8], "little")
+                        ]
+        self.view = [int.from_bytes(mes[8:12], "little"),
+                     int.from_bytes(mes[12:16], "little")
+                     ]
+        self.state_from_message(mes[16:])
 
     def update(self):
-        self.socket.send(b"full;", 0)
+        self.socket.send(b"fullstateupdate;", 0)
         mes = self.socket.recv(1024 * 1024, 0)
         self.state_from_message(mes)
 
     def state_from_message(self, message: bytes):
         message = message[4:]
-        self.elements = []
+        self.status = int.from_bytes(message[0:4], "little")
+
+        message = message[4:]
+        self.menu.minerals = int.from_bytes(message[0:4], "little")
+
+        message = message[4:]
+        self.layers: list[list[Sprite]] = [[],[],[],[]]
         for s in range(len(message) // 12):
             p = message[s * 12 : s * 12 + 12]
             id = int.from_bytes(p[0:4], "little")
@@ -98,11 +268,15 @@ class StuftCraftClient:
             y = int.from_bytes(p[8:12], "little")
 
             ele = Sprite(id, x, y)
-            self.elements.append(ele)
+            self.layers[ele.get_layer()].append(ele)
 
 
 if __name__ == "__main__":
-    client = StuftCraftClient()
+    if len(sys.argv) >= 2:
+        player_name = sys.argv[1]
+    else:
+        player_name = input("Enter Name: ")
+    client = StuftCraftClient(player_name)
     ipAddress = '192.168.1.117'
     port = 4001
     address = (ipAddress, port)

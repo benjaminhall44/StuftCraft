@@ -32,3 +32,9 @@ class Vector:
     def get_list(self):
         return [self.x, self.y]
 
+    def magnitude(self):
+        return (self.x ** 2 + self.y ** 2) ** .5
+
+    def unit(self):
+        return self / self.magnitude()
+
