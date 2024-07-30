@@ -1,6 +1,6 @@
 from assets.modules.elements.Element import *
 from assets.modules.elements.constructs.Construct import Construct
-from Player import Player
+from assets.modules.components.Player import Player
 
 class Projectile(Element):
     def __init__(self, texture, team: Player, pos, destination, speed, radius, damage, life):

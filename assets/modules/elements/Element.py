@@ -1,8 +1,4 @@
-import pygame
-
-from Vector import Vector
-import TextureIdLib
-
+from assets.modules.libraries import TextureIdLib
 class Element:
     def __init__(self, pos):
         self.texture = 0

@@ -10,7 +10,7 @@ class Worker (Construct):
 
     def findNearest(self, kind: type, elements: list[Element], owner=None):
         nearest = None
-        distance = 1000000
+        distance = 2000000
         for e in elements:
             if type(e) is kind:
                 if owner is None or (isinstance(e, Construct) and e.player is owner):

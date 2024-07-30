@@ -1,4 +1,4 @@
-import TextureIdLib
+from assets.modules.libraries import TextureIdLib
 from assets.modules.elements.constructs.troops.Troop import *
 
 class ThreeTroop(Troop):

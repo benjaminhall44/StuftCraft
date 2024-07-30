@@ -1,5 +1,5 @@
 from assets.modules.elements.projectiles.Projectile import *
-
+from assets.modules.elements.environment.VisualElement import VisualElement
 
 class Missile(Projectile):
     def __init__(self, texture, team: Player, pos, destination, speed, radius, damage, life, blast_radius):
@@ -12,3 +12,4 @@ class Missile(Projectile):
                 if self.distanceTo(e) < self.blast_radius + e.radius:
                     e.health -= self.damage
         self.alive = False
+        elements.append(VisualElement(self.position, TextureIdLib.EXPLOSION, 4))

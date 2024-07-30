@@ -1,6 +1,6 @@
-import TextureIdLib
 from assets.modules.elements.Element import *
-from Player import Player
+from assets.modules.components.Player import Player
+import random
 
 NORMAL_EFFECT = TextureIdLib.NORMAL
 WEBBED_EFFECT = TextureIdLib.WEBBED
@@ -13,12 +13,17 @@ class Construct(Element):
     effect: int
     effect_counter: int
     effect_remaining: int
+
+    WAITING = 0
+    TRAVELING = 1
+
     def __init__(self, player, pos):
         super().__init__(pos)
         self.player: Player = player
         self.effect = 0
         self.effect_counter = 0
         self.effect_remaining = 0
+        self.mode = 0
         self.init()
 
     def init(self):
@@ -37,6 +42,7 @@ class Construct(Element):
                 self.effect_remaining = 0
 
         if self.health <= 0:
+            self.kill(elements)
             self.alive = False
         else:
             self.Update(elements)
@@ -45,7 +51,7 @@ class Construct(Element):
         raise NotImplemented
 
     def kill(self, elements):
-        self.alive = False
+        pass
 
     def condition(self):
         return self.effect
@@ -74,3 +80,10 @@ class Construct(Element):
             self.position[0] += togo[0] * speed / distance
             self.position[1] += togo[1] * speed / distance
         return distance
+
+    def set_destination(self, location, radius, elements):
+        self.mode = self.TRAVELING
+        xerror = random.randint(-radius, radius)
+        yradius = int((radius ** 2 - xerror ** 2) ** .5)
+        yerror = random.randint(-yradius, yradius)
+        self.destination = [location[0] + xerror, location[1] + yerror]
