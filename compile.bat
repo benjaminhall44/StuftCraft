@@ -1,0 +1,1 @@
+pyinstaller --onefile --contents-directory assets -w -i icon.ico main.py
