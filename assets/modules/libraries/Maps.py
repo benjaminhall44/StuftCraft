@@ -5,17 +5,23 @@ from assets.modules.elements.constructs.buildings.BaseBuilding import BaseBuildi
 
 from assets.modules.elements.environment.MineralPile import MineralPile
 
-PlainMap2player = Map(
-    (3000, 3000),
-    (0, 255, 0),
-    ((0, 2150), (2000, 150)),
-    (
+PLAIN_ELEMENTS = (
         (MineralPile, ((500, 2500), 100)),
         (MineralPile, ((2500, 500), 100)),
-        (BaseBuilding, (0, (300, 2500))),
-        (BaseBuilding, (1, (2300, 500))),
-        (MinerWorker, (0, (400, 2500))),
-        (MinerWorker, (1, (2400, 500))),
+        (MineralPile, ((2500, 2500), 100)),
+        (MineralPile, ((500, 500), 100)),
+
+        (MineralPile, ((1500, 1500), 500))
+    )
+DESERT_ELEMENTS = (
+        (MineralPile, ((500, 2500), 100)),
+        (MineralPile, ((2500, 500), 100)),
+        (MineralPile, ((2500, 2500), 100)),
+        (MineralPile, ((500, 500), 100)),
+)
+CAVE_ELEMENTS = (
+        (MineralPile, ((500, 2500), 100)),
+        (MineralPile, ((2500, 500), 100)),
         (MineralPile, ((2500, 2500), 100)),
         (MineralPile, ((500, 500), 100)),
 
@@ -25,6 +31,18 @@ PlainMap2player = Map(
         (MineralPile, ((500, 1500), 200)),
 
         (MineralPile, ((1500, 1500), 500))
+)
+
+PlainMap2player = Map(
+    (3000, 3000),
+    (0, 255, 0),
+    ((0, 2150), (2000, 150)),
+    (
+        (BaseBuilding, (0, (300, 2500))),
+        (BaseBuilding, (1, (2300, 500))),
+        (MinerWorker, (0, (400, 2500))),
+        (MinerWorker, (1, (2400, 500))),
+        *PLAIN_ELEMENTS
     )
 )
 
@@ -41,18 +59,7 @@ PlainMap3player = Map(
 
         (BaseBuilding, (2, (300, 500))),
         (MinerWorker, (2, (400, 500))),
-
-        (MineralPile, ((500, 2500), 100)),
-        (MineralPile, ((2500, 500), 100)),
-        (MineralPile, ((2500, 2500), 100)),
-        (MineralPile, ((500, 500), 100)),
-
-        (MineralPile, ((1500, 2500), 200)),
-        (MineralPile, ((1500, 500), 200)),
-        (MineralPile, ((2500, 1500), 200)),
-        (MineralPile, ((500, 1500), 200)),
-
-        (MineralPile, ((1500, 1500), 500))
+        *PLAIN_ELEMENTS
     )
 )
 
@@ -72,18 +79,7 @@ PlainMap4player = Map(
 
         (BaseBuilding, (3, (2300, 2500))),
         (MinerWorker, (3, (2400, 2500))),
-
-        (MineralPile, ((500, 2500), 100)),
-        (MineralPile, ((2500, 500), 100)),
-        (MineralPile, ((2500, 2500), 100)),
-        (MineralPile, ((500, 500), 100)),
-
-        (MineralPile, ((1500, 2500), 200)),
-        (MineralPile, ((1500, 500), 200)),
-        (MineralPile, ((2500, 1500), 200)),
-        (MineralPile, ((500, 1500), 200)),
-
-        (MineralPile, ((1500, 1500), 500))
+        *PLAIN_ELEMENTS
     )
 )
 
@@ -92,21 +88,11 @@ DesertMap2player = Map(
     (255, 255, 0),
     ((0, 2150), (2000, 150)),
     (
-        (MineralPile, ((500, 2500), 100)),
-        (MineralPile, ((2500, 500), 100)),
         (BaseBuilding, (0, (300, 2500))),
         (BaseBuilding, (1, (2300, 500))),
         (MinerWorker, (0, (400, 2500))),
         (MinerWorker, (1, (2400, 500))),
-        (MineralPile, ((2500, 2500), 100)),
-        (MineralPile, ((500, 500), 100)),
-
-        (MineralPile, ((1500, 2500), 200)),
-        (MineralPile, ((1500, 500), 200)),
-        (MineralPile, ((2500, 1500), 200)),
-        (MineralPile, ((500, 1500), 200)),
-
-        (MineralPile, ((1500, 1500), 500))
+        *DESERT_ELEMENTS
     )
 )
 
@@ -123,18 +109,7 @@ DesertMap3player = Map(
 
         (BaseBuilding, (2, (300, 500))),
         (MinerWorker, (2, (400, 500))),
-
-        (MineralPile, ((500, 2500), 100)),
-        (MineralPile, ((2500, 500), 100)),
-        (MineralPile, ((2500, 2500), 100)),
-        (MineralPile, ((500, 500), 100)),
-
-        (MineralPile, ((1500, 2500), 200)),
-        (MineralPile, ((1500, 500), 200)),
-        (MineralPile, ((2500, 1500), 200)),
-        (MineralPile, ((500, 1500), 200)),
-
-        (MineralPile, ((1500, 1500), 500))
+        *DESERT_ELEMENTS
     )
 )
 
@@ -154,18 +129,7 @@ DesertMap4player = Map(
 
         (BaseBuilding, (3, (2300, 2500))),
         (MinerWorker, (3, (2400, 2500))),
-
-        (MineralPile, ((500, 2500), 100)),
-        (MineralPile, ((2500, 500), 100)),
-        (MineralPile, ((2500, 2500), 100)),
-        (MineralPile, ((500, 500), 100)),
-
-        (MineralPile, ((1500, 2500), 200)),
-        (MineralPile, ((1500, 500), 200)),
-        (MineralPile, ((2500, 1500), 200)),
-        (MineralPile, ((500, 1500), 200)),
-
-        (MineralPile, ((1500, 1500), 500))
+        *DESERT_ELEMENTS
     )
 )
 
@@ -174,21 +138,11 @@ CaveMap2player = Map(
     (128, 64, 0),
     ((0, 2150), (2000, 150)),
     (
-        (MineralPile, ((500, 2500), 100)),
-        (MineralPile, ((2500, 500), 100)),
         (BaseBuilding, (0, (300, 2500))),
         (BaseBuilding, (1, (2300, 500))),
         (MinerWorker, (0, (400, 2500))),
         (MinerWorker, (1, (2400, 500))),
-        (MineralPile, ((2500, 2500), 100)),
-        (MineralPile, ((500, 500), 100)),
-
-        (MineralPile, ((1500, 2500), 200)),
-        (MineralPile, ((1500, 500), 200)),
-        (MineralPile, ((2500, 1500), 200)),
-        (MineralPile, ((500, 1500), 200)),
-
-        (MineralPile, ((1500, 1500), 500))
+        *CAVE_ELEMENTS
     )
 )
 
@@ -205,18 +159,7 @@ CaveMap3player = Map(
 
         (BaseBuilding, (2, (300, 500))),
         (MinerWorker, (2, (400, 500))),
-
-        (MineralPile, ((500, 2500), 100)),
-        (MineralPile, ((2500, 500), 100)),
-        (MineralPile, ((2500, 2500), 100)),
-        (MineralPile, ((500, 500), 100)),
-
-        (MineralPile, ((1500, 2500), 200)),
-        (MineralPile, ((1500, 500), 200)),
-        (MineralPile, ((2500, 1500), 200)),
-        (MineralPile, ((500, 1500), 200)),
-
-        (MineralPile, ((1500, 1500), 500))
+        *CAVE_ELEMENTS
     )
 )
 
@@ -236,18 +179,7 @@ CaveMap4player = Map(
 
         (BaseBuilding, (3, (2300, 2500))),
         (MinerWorker, (3, (2400, 2500))),
-
-        (MineralPile, ((500, 2500), 100)),
-        (MineralPile, ((2500, 500), 100)),
-        (MineralPile, ((2500, 2500), 100)),
-        (MineralPile, ((500, 500), 100)),
-
-        (MineralPile, ((1500, 2500), 200)),
-        (MineralPile, ((1500, 500), 200)),
-        (MineralPile, ((2500, 1500), 200)),
-        (MineralPile, ((500, 1500), 200)),
-
-        (MineralPile, ((1500, 1500), 500))
+        *CAVE_ELEMENTS
     )
 )
 
