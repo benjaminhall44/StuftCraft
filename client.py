@@ -1,7 +1,5 @@
 import time
 
-import select
-
 import pygame
 import socket
 import sys
@@ -162,7 +160,7 @@ class StuftCraftClient:
             if self.scrolling and self.MouseDown:
                 result, value = self.menu.click_menu(self.screen.get_size(), self.MousePosition)
                 if result != Menu.SCROLL and result != Menu.SCROLL_TAB:
-                    scrolling = False
+                    self.scrolling = False
             if UpDown:
                 self.view[1] -= 10
                 if self.view[1] < 0:
@@ -218,11 +216,15 @@ class StuftCraftClient:
 
         # DRAW MINIMAP
         minimap = pygame.Surface([200, 200])
-        minimap.fill([0,255,0])
+        minimap.fill(self.MapColor)
         for layer in self.layers:
             for s in layer:
                 s.draw_map(minimap, self.MapSize)
-        pygame.draw.rect(minimap, [127, 127, 127], [self.view[0] / self.MapSize[0] * 200, self.view[1] / self.MapSize[1] * 200, size[0] * 200 / self.MapSize[0], size[1] * 200 / self.MapSize[1]], width=2)
+        minimap_scale = 200 / self.MapSize[0], 200 / self.MapSize[1]
+        pygame.draw.rect(minimap, [127, 127, 127],
+                         [self.view[0] * minimap_scale[0], self.view[1] * minimap_scale[1],
+                          size[0] * minimap_scale[0], size[1] * minimap_scale[1]],
+                         width=2)
         self.screen.blit(minimap, [size[0] - 210, 10])
         pygame.draw.rect(self.screen, [100, 100, 100], [size[0] - 210 - 5, 10 - 5, 209, 209], width=5)
 

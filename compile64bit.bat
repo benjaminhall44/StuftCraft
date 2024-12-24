@@ -1,0 +1,3 @@
+C:\Users\benja\AppData\Local\Programs\Python\Python312\Scripts\pyinstaller --onefile --contents-directory assets -w -i icon.ico main.py --distpath dist_x64
+C:\Users\benja\AppData\Local\Programs\Python\Python312\Scripts\pyinstaller --onefile --contents-directory assets -w -i icon.ico client.py --distpath dist_x64
+C:\Users\benja\AppData\Local\Programs\Python\Python312\Scripts\pyinstaller --onefile --contents-directory assets -i icon.ico server.py --distpath dist_x64

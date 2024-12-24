@@ -18,6 +18,7 @@ class StuftCraftServer:
         self.connections = []
         self.port = port
         self.socket.bind((socket.gethostname(), self.port))
+        self.socket.settimeout(0.1)
 
         self.running = True
 
@@ -37,8 +38,8 @@ class StuftCraftServer:
             trying = True
             while trying:
                 try:
-                    self.socket.settimeout(0.1)
                     connection, stuff = self.socket.accept()
+                    connection.settimeout(0.01)
                     player_name = connection.recv(1024, 0).decode("utf8")
                     print(f"{player_name} just joined")
                     player = Player(player_name, p, self.Map.get_home(p), 0)
@@ -46,9 +47,8 @@ class StuftCraftServer:
                     self.connections.append((connection, player))
                     trying = False
                 except:
-                    self.socket.settimeout(None)
                     for con, player in self.connections[:]:
-                        message = con.recv(1024, 0)
+                        message = self.get_message(con)
                         while len(message) > 0:
                             mes, message = message[0:16], message[16:]
                             c = mes[0:4]
@@ -64,11 +64,11 @@ class StuftCraftServer:
                                     self.socket.close()
                                     return
 
-        self.socket.settimeout(None)
         self.elements = self.Map.get_elements(list(p for c, p in self.connections))
         self.connecting = False
 
         while self.running:
+            st_time = time.time_ns() + 100000000
             dead = []
             for e in self.elements[:]:
                 if e.alive:
@@ -87,7 +87,7 @@ class StuftCraftServer:
                 self.elements.remove(e)
 
             for con, player in self.connections[:]:
-                message = con.recv(1024, 0)
+                message = self.get_message(con)
                 while len(message) > 0:
                     mes, message = message[0:16], message[16:]
                     c = mes[0:4]
@@ -124,15 +124,19 @@ class StuftCraftServer:
                         if len(self.connections) == 0:
                             print("All players have quit: shutting down")
                             self.running = False
-                    elif c == b"new\0":
-                        con.send(self.state_to_message(player), 0)
-
-            time.sleep(0.1 - (time.time_ns() % 100000000) / 1000000000)
+            time.sleep(max(st_time - time.time_ns(), 0) / 1000000000)
 
         for c in self.connections:
             c[0].close()
 
         self.socket.close()
+
+    @staticmethod
+    def get_message(con) -> bytes:
+        try:
+            return con.recv(1024, 0)
+        except TimeoutError:
+            return b""
 
     def purchase(self, player, id, pos):
         if ShopContents[id]["Class"].place_condition(player, pos, self.elements):
@@ -196,5 +200,5 @@ if __name__ == "__main__":
         map = "Plain"
         port = 4001
     server = StuftCraftServer(player_count, map, port)
-    print(server.get_address())
+    print(f"Running on: {server.get_address()}")
     server.run()
